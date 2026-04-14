@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPECworkstation 安裝流程示範</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0f11;
+    --surface: #16181c;
+    --surface2: #1e2026;
+    --border: rgba(255,255,255,0.07);
+    --border-active: rgba(99,179,237,0.4);
+    --text-primary: #f0f2f5;
+    --text-secondary: #8b909e;
+    --text-muted: #555b6a;
+    --accent: #63b3ed;
+    --accent-bg: rgba(99,179,237,0.08);
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  body {
+    background-image:
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(99,179,237,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 50% at 80% 80%, rgba(99,179,237,0.03) 0%, transparent 60%);
+  }
+
+  .page {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+  }
+
+  .header { margin-bottom: 2.5rem; }
+
+  .header-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-bg);
+    border: 1px solid var(--border-active);
+    border-radius: 20px;
+    padding: 4px 12px;
+    margin-bottom: 1rem;
+  }
+
+  .header-tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .header h1 {
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.4rem;
+  }
+
+  .header p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 300;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  @media (max-width: 700px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  .step-list { position: sticky; top: 1.5rem; }
+
+  .step-list-header {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0 4px;
+    margin-bottom: 10px;
+  }
+
+  .step-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.18s ease;
+    width: 100%;
+  }
+
+  .step-btn:hover { border-color: var(--border); background: rgba(255,255,255,0.02); }
+
+  .step-btn.active {
+    border-color: var(--border-active);
+    background: var(--accent-bg);
+  }
+
+  .step-num {
+    flex-shrink: 0;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+    background: var(--surface2);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    transition: all 0.18s;
+  }
+
+  .step-btn.active .step-num {
+    background: var(--accent);
+    color: #0e0f11;
+    border-color: var(--accent);
+  }
+
+  .step-text { flex: 1; min-width: 0; }
+
+  .step-label {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-bottom: 2px;
+    display: block;
+  }
+
+  .step-btn.active .step-label { color: var(--text-primary); }
+
+  .step-time {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-muted);
+  }
+
+  .step-btn.active .step-time { color: var(--accent); }
+
+  .connector {
+    width: 1px;
+    height: 10px;
+    background: var(--border);
+    margin: 2px 0 2px 22px;
+  }
+
+  .video-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .thumb-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+  }
+
+  .thumb-wrap img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease, filter 0.3s ease;
+  }
+
+  .thumb-wrap:hover img {
+    transform: scale(1.02);
+    filter: brightness(0.8);
+  }
+
+  .thumb-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: rgba(0,0,0,0.38);
+    transition: background 0.2s;
+  }
+
+  .thumb-wrap:hover .thumb-overlay { background: rgba(0,0,0,0.52); }
+
+  .play-btn {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .thumb-wrap:hover .play-btn {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 10px rgba(99,179,237,0.15);
+  }
+
+  .play-btn svg { margin-left: 4px; }
+
+  .overlay-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+  }
+
+  .overlay-time {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: rgba(255,255,255,0.55);
+  }
+
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: auto 1px 1fr;
+    gap: 14px;
+    align-items: center;
+  }
+
+  .info-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .info-badge {
+    font-size: 11px;
+    font-weight: 500;
+    font-family: 'DM Mono', monospace;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .info-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+
+  .info-divider { background: var(--border); height: 40px; }
+
+  .info-body { display: flex; flex-direction: column; gap: 3px; }
+
+  .info-time {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-muted);
+  }
+
+  .info-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 4px;
+  }
+
+  .open-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--accent);
+    background: var(--accent-bg);
+    border: 1px solid var(--border-active);
+    border-radius: 20px;
+    padding: 4px 12px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s;
+    width: fit-content;
+  }
+
+  .open-btn:hover { background: rgba(99,179,237,0.16); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <span class="header-tag">Computer Use Showcase</span>
+    <h1>SPECworkstation 安裝流程示範</h1>
+    <p>點擊左側步驟，即可在 YouTube 播放對應時間段的操作影片</p>
+  </div>
+
+  <div class="layout">
+
+    <div class="step-list">
+      <div class="step-list-header">安裝步驟</div>
+      <div id="stepListInner"></div>
+    </div>
+
+    <div class="video-panel">
+      <div class="thumb-wrap" id="thumbWrap">
+        <img src="https://img.youtube.com/vi/6HtAjDCfPjg/maxresdefault.jpg" alt="影片縮圖">
+        <div class="thumb-overlay">
+          <div class="play-btn">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="#0e0f11">
+              <polygon points="5,3 19,12 5,21"/>
+            </svg>
+          </div>
+          <span class="overlay-label">點擊在 YouTube 開啟</span>
+          <span class="overlay-time" id="overlayTime">從 0:00 開始</span>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-step">
+          <span class="info-badge" id="infoBadge">STEP 1</span>
+          <span class="info-dot"></span>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-body">
+          <span class="info-time" id="infoTime">0:00 – 0:53</span>
+          <p class="info-desc" id="infoDesc">確認目前在 SPECworkstation 的 workload 安裝畫面，並全程使用預設設定繼續流程</p>
+          <a class="open-btn" id="openLink" href="https://youtu.be/6HtAjDCfPjg?t=0" target="_blank">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21" fill="currentColor" stroke="none"/></svg>
+            在 YouTube 開啟此步驟
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const VIDEO_ID = '6HtAjDCfPjg';
+
+const steps = [
+  { label: "確認安裝畫面並使用預設設定",       time: "0:00 – 0:53", start: 0,   desc: "確認目前在 SPECworkstation 的 workload 安裝畫面，並全程使用預設設定繼續流程" },
+  { label: "確認 Download Directory 路徑",    time: "0:54 – 1:25", start: 54,  desc: "檢查 Download Directory 是否為指定路徑，若不是則透過資料夾選擇視窗輸入並確認正確路徑" },
+  { label: "確保 Delete Downloads 未勾選",    time: "1:26 – 1:29", start: 86,  desc: "找到「Delete Downloads After Extraction」選項，並確保它是未勾選狀態" },
+  { label: "點擊 Install Selected Workloads", time: "1:30 – 1:42", start: 90,  desc: "找到並點擊「Install Selected Workloads」按鈕以開始安裝" },
+  { label: "等待安裝完成",                    time: "1:43 – 2:44", start: 103, desc: "按下 Install 後進入安裝流程，持續等待直到畫面出現「Installation Complete」提示" },
+  { label: "點擊 Exit 並返回桌面",            time: "2:45 – 3:32", start: 165, desc: "安裝完成後點擊 Exit，確認系統回到桌面以結束整個流程" }
+];
+
+let currentStart = 0;
+let buttons = [];
+
+const listEl      = document.getElementById('stepListInner');
+const thumbWrap   = document.getElementById('thumbWrap');
+const infoBadge   = document.getElementById('infoBadge');
+const infoTime    = document.getElementById('infoTime');
+const infoDesc    = document.getElementById('infoDesc');
+const openLink    = document.getElementById('openLink');
+const overlayTime = document.getElementById('overlayTime');
+
+thumbWrap.addEventListener('click', () => {
+  window.open(`https://youtu.be/${VIDEO_ID}?t=${currentStart}`, '_blank');
+});
+
+function selectStep(idx) {
+  buttons.forEach((b, i) => b.classList.toggle('active', i === idx));
+  const s = steps[idx];
+  currentStart = s.start;
+  infoBadge.textContent  = `STEP ${idx + 1}`;
+  infoTime.textContent   = s.time;
+  infoDesc.textContent   = s.desc;
+  openLink.href          = `https://youtu.be/${VIDEO_ID}?t=${s.start}`;
+  overlayTime.textContent = `從 ${s.time.split('–')[0].trim()} 開始`;
+}
+
+steps.forEach((s, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'step-btn' + (i === 0 ? ' active' : '');
+  btn.innerHTML = `
+    <span class="step-num">${i + 1}</span>
+    <span class="step-text">
+      <span class="step-label">${s.label}</span>
+      <span class="step-time">${s.time}</span>
+    </span>
+  `;
+  btn.addEventListener('click', () => selectStep(i));
+  listEl.appendChild(btn);
+  buttons.push(btn);
+
+  if (i < steps.length - 1) {
+    const conn = document.createElement('div');
+    conn.className = 'connector';
+    listEl.appendChild(conn);
+  }
+});
+</script>
+</body>
+</html>
