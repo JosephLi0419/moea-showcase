@@ -13,15 +13,11 @@
   --panel:     #0f1011;
   --card:      #141516;
   --border:    rgba(255,255,255,0.06);
-  --border-hi: rgba(232,196,104,0.35);
   --gold:      #e8c468;
   --gold-dim:  rgba(232,196,104,0.12);
-  --gold-glow: rgba(232,196,104,0.06);
   --text-1:    #edeae3;
   --text-2:    #7a7872;
   --text-3:    #3f3e3b;
-  --radius:    8px;
-  --radius-lg: 14px;
   --radius-xl: 20px;
 }
 
@@ -70,14 +66,12 @@ html, body {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--text-1);
 }
 
 .brand-sub {
   font-family: 'Inconsolata', monospace;
   font-size: 11px;
   color: var(--text-2);
-  letter-spacing: 0.04em;
 }
 
 .topbar-right {
@@ -147,7 +141,6 @@ html, body {
   font-size: 11px;
   color: var(--text-2);
   transition: all 0.2s;
-  flex-shrink: 0;
 }
 
 .step-item.active .step-num {
@@ -157,13 +150,9 @@ html, body {
   font-weight: 500;
 }
 
-.step-line {
-  width: 1px;
-  height: 18px;
-  background: var(--border);
-}
+.step-line { width: 1px; height: 18px; background: var(--border); }
 
-.step-info { flex: 1; padding-top: 3px; min-width: 0; }
+.step-info { flex: 1; padding-top: 3px; }
 
 .step-en {
   font-family: 'Inconsolata', monospace;
@@ -251,6 +240,7 @@ html, body {
 .video-inner {
   position: absolute;
   top: 28px; left: 0; right: 0; bottom: 0;
+  cursor: pointer;
 }
 
 video {
@@ -261,6 +251,35 @@ video {
   background: #000;
 }
 
+/* Play overlay */
+.play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.45);
+  transition: opacity 0.2s;
+  z-index: 4;
+}
+
+.play-overlay.hidden { opacity: 0; pointer-events: none; }
+
+.play-circle {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.play-overlay:hover .play-circle { transform: scale(1.1); }
+
+.play-circle svg { margin-left: 4px; }
+
+/* Fade overlay */
 .fade {
   position: absolute;
   inset: 0;
@@ -270,7 +289,6 @@ video {
   transition: opacity 0.22s ease;
   z-index: 3;
 }
-
 .fade.on { opacity: 1; }
 
 /* Info bar */
@@ -282,7 +300,6 @@ video {
   gap: 1.25rem;
   align-items: center;
   background: var(--panel);
-  flex-shrink: 0;
 }
 
 .info-left { display: flex; flex-direction: column; gap: 2px; }
@@ -295,12 +312,7 @@ video {
   text-transform: uppercase;
 }
 
-.info-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-1);
-  white-space: nowrap;
-}
+.info-name { font-size: 15px; font-weight: 600; white-space: nowrap; }
 
 .info-sep { background: var(--border); height: 34px; }
 
@@ -323,11 +335,9 @@ video {
   box-shadow: 0 0 7px var(--gold);
 }
 
-/* key hint */
 .key-hint {
   position: fixed;
-  bottom: 14px;
-  right: 20px;
+  bottom: 14px; right: 20px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -375,8 +385,15 @@ kbd {
             <span class="cdot g"></span>
             <span class="chrome-label" id="chromeLabel">Step 1 — Target Folder</span>
           </div>
-          <div class="video-inner">
-            <video id="vid" playsinline muted></video>
+          <div class="video-inner" id="videoInner">
+            <video id="vid" playsinline muted loop></video>
+            <div class="play-overlay" id="playOverlay">
+              <div class="play-circle">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#080909">
+                  <polygon points="5,3 19,12 5,21"/>
+                </svg>
+              </div>
+            </div>
             <div class="fade" id="fade"></div>
           </div>
         </div>
@@ -401,24 +418,24 @@ kbd {
 
 <script>
 const steps = [
-  { en:'Target Folder',   zh:'確認安裝資料夾', src:'0416_01.mp4', desc:'確認安裝資料夾路徑，確保目標位置正確無誤' },
-  { en:'Launch Setup',    zh:'進入安裝畫面',   src:'0416_02.mp4', desc:'啟動 SPECworkstation 安裝程式，進入設定流程畫面' },
-  { en:'Select Resources',zh:'選擇資源包位置', src:'0416_03.mp4', desc:'指定資源包所在路徑，確認下載來源設定正確' },
-  { en:'Confirm Install', zh:'確認安裝',       src:'0416_04.mp4', desc:'核對所有安裝設定後，按下確認鍵開始執行安裝' },
-  { en:'Setup Complete',  zh:'安裝完成畫面',   src:'0416_05.mp4', desc:'安裝流程順利結束，畫面顯示 Setup Complete 確認訊息' }
+  { en:'Target Folder',    zh:'確認安裝資料夾', src:'0416_01.mp4', desc:'確認安裝資料夾路徑，確保目標位置正確無誤' },
+  { en:'Launch Setup',     zh:'進入安裝畫面',   src:'0416_02.mp4', desc:'啟動 SPECworkstation 安裝程式，進入設定流程畫面' },
+  { en:'Select Resources', zh:'選擇資源包位置', src:'0416_03.mp4', desc:'指定資源包所在路徑，確認下載來源設定正確' },
+  { en:'Confirm Install',  zh:'確認安裝',       src:'0416_04.mp4', desc:'核對所有安裝設定後，按下確認鍵開始執行安裝' },
+  { en:'Setup Complete',   zh:'安裝完成畫面',   src:'0416_05.mp4', desc:'安裝流程順利結束，畫面顯示 Setup Complete 確認訊息' }
 ];
 
-let cur = 0;
-let busy = false;
+let cur = 0, busy = false;
 
-const vid    = document.getElementById('vid');
-const fade   = document.getElementById('fade');
-const chrome = document.getElementById('chromeLabel');
-const iTag   = document.getElementById('infoTag');
-const iName  = document.getElementById('infoName');
-const iDesc  = document.getElementById('infoDesc');
-const list   = document.getElementById('stepList');
-const pdots  = document.getElementById('pdots');
+const vid         = document.getElementById('vid');
+const fade        = document.getElementById('fade');
+const playOverlay = document.getElementById('playOverlay');
+const chromeLabel = document.getElementById('chromeLabel');
+const iTag        = document.getElementById('infoTag');
+const iName       = document.getElementById('infoName');
+const iDesc       = document.getElementById('infoDesc');
+const list        = document.getElementById('stepList');
+const pdotsCont   = document.getElementById('pdots');
 
 let btns = [], dots = [];
 
@@ -442,7 +459,7 @@ steps.forEach((s, i) => {
   const d = document.createElement('div');
   d.className = 'pdot' + (i === 0 ? ' on' : '');
   d.addEventListener('click', () => goTo(i));
-  pdots.appendChild(d);
+  pdotsCont.appendChild(d);
   dots.push(d);
 });
 
@@ -450,38 +467,51 @@ function setUI(idx) {
   const s = steps[idx];
   btns.forEach((b,i) => b.classList.toggle('active', i===idx));
   dots.forEach((d,i) => d.classList.toggle('on', i===idx));
-  chrome.textContent = `Step ${idx+1} — ${s.en}`;
-  iTag.textContent   = `STEP ${String(idx+1).padStart(2,'0')} / ${String(steps.length).padStart(2,'0')}`;
-  iName.textContent  = s.en;
-  iDesc.textContent  = s.desc;
+  chromeLabel.textContent = `Step ${idx+1} — ${s.en}`;
+  iTag.textContent  = `STEP ${String(idx+1).padStart(2,'0')} / 05`;
+  iName.textContent = s.en;
+  iDesc.textContent = s.desc;
+}
+
+function loadVideo(idx, autoplay) {
+  vid.src = steps[idx].src;
+  vid.load();
+  if (autoplay) {
+    vid.play().then(() => {
+      playOverlay.classList.add('hidden');
+    }).catch(() => {
+      // Autoplay blocked — show play button
+      playOverlay.classList.remove('hidden');
+    });
+  } else {
+    playOverlay.classList.remove('hidden');
+  }
 }
 
 function goTo(idx) {
   if (idx === cur || busy) return;
   busy = true;
   fade.classList.add('on');
-
   setTimeout(() => {
     cur = idx;
     setUI(idx);
-    vid.src = steps[idx].src;
-    vid.load();
-
-    const tryPlay = () => {
-      fade.classList.remove('on');
-      vid.play().catch(()=>{});
-      busy = false;
-    };
-
-    vid.oncanplay = () => { vid.oncanplay = null; tryPlay(); };
-    setTimeout(() => { if(busy){ tryPlay(); } }, 1000);
+    loadVideo(idx, true);
+    fade.classList.remove('on');
+    busy = false;
   }, 240);
 }
 
-// Loop
-vid.addEventListener('ended', () => { vid.currentTime = 0; vid.play().catch(()=>{}); });
+// Click video inner to play/pause
+document.getElementById('videoInner').addEventListener('click', () => {
+  if (vid.paused) {
+    vid.play().then(() => playOverlay.classList.add('hidden'));
+  } else {
+    vid.pause();
+    playOverlay.classList.remove('hidden');
+  }
+});
 
-// Keyboard
+// Keyboard nav
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight') goTo(Math.min(cur+1, steps.length-1));
   if (e.key === 'ArrowLeft')  goTo(Math.max(cur-1, 0));
@@ -489,9 +519,7 @@ document.addEventListener('keydown', e => {
 
 // Init
 setUI(0);
-vid.src = steps[0].src;
-vid.load();
-vid.oncanplay = () => { vid.oncanplay = null; vid.play().catch(()=>{}); };
+loadVideo(0, true);
 </script>
 </body>
 </html>
