@@ -36,7 +36,6 @@ html, body {
   height: 100vh;
 }
 
-/* Top bar */
 .topbar {
   display: flex;
   align-items: center;
@@ -82,14 +81,12 @@ html, body {
   text-transform: uppercase;
 }
 
-/* Main */
 .main {
   display: grid;
   grid-template-columns: 256px 1fr;
   overflow: hidden;
 }
 
-/* Sidebar */
 .sidebar {
   border-right: 1px solid var(--border);
   display: flex;
@@ -174,7 +171,6 @@ html, body {
 
 .step-item.active .step-zh { color: var(--text-1); }
 
-/* Video area */
 .video-area {
   display: grid;
   grid-template-rows: 1fr auto;
@@ -251,13 +247,15 @@ video {
   background: #000;
 }
 
-/* Play overlay */
+/* Play / Replay overlay */
 .play-overlay {
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 12px;
   background: rgba(0,0,0,0.45);
   transition: opacity 0.2s;
   z-index: 4;
@@ -279,7 +277,14 @@ video {
 
 .play-circle svg { margin-left: 4px; }
 
-/* Fade overlay */
+.play-label {
+  font-family: 'Inconsolata', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.08em;
+}
+
+/* Fade overlay for transitions */
 .fade {
   position: absolute;
   inset: 0;
@@ -291,7 +296,6 @@ video {
 }
 .fade.on { opacity: 1; }
 
-/* Info bar */
 .info-bar {
   border-top: 1px solid var(--border);
   padding: 0.9rem 2rem;
@@ -386,13 +390,14 @@ kbd {
             <span class="chrome-label" id="chromeLabel">Step 1 — Target Folder</span>
           </div>
           <div class="video-inner" id="videoInner">
-            <video id="vid" playsinline muted loop></video>
+            <video id="vid" playsinline muted></video>
             <div class="play-overlay" id="playOverlay">
               <div class="play-circle">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="#080909">
                   <polygon points="5,3 19,12 5,21"/>
                 </svg>
               </div>
+              <span class="play-label" id="playLabel">點擊播放</span>
             </div>
             <div class="fade" id="fade"></div>
           </div>
@@ -430,6 +435,7 @@ let cur = 0, busy = false;
 const vid         = document.getElementById('vid');
 const fade        = document.getElementById('fade');
 const playOverlay = document.getElementById('playOverlay');
+const playLabel   = document.getElementById('playLabel');
 const chromeLabel = document.getElementById('chromeLabel');
 const iTag        = document.getElementById('infoTag');
 const iName       = document.getElementById('infoName');
@@ -439,7 +445,6 @@ const pdotsCont   = document.getElementById('pdots');
 
 let btns = [], dots = [];
 
-// Build sidebar + dots
 steps.forEach((s, i) => {
   const el = document.createElement('div');
   el.className = 'step-item' + (i === 0 ? ' active' : '');
@@ -473,18 +478,22 @@ function setUI(idx) {
   iDesc.textContent = s.desc;
 }
 
+function showOverlay(label) {
+  playLabel.textContent = label;
+  playOverlay.classList.remove('hidden');
+}
+
+function hideOverlay() {
+  playOverlay.classList.add('hidden');
+}
+
 function loadVideo(idx, autoplay) {
   vid.src = steps[idx].src;
   vid.load();
   if (autoplay) {
-    vid.play().then(() => {
-      playOverlay.classList.add('hidden');
-    }).catch(() => {
-      // Autoplay blocked — show play button
-      playOverlay.classList.remove('hidden');
-    });
+    vid.play().then(() => hideOverlay()).catch(() => showOverlay('點擊播放'));
   } else {
-    playOverlay.classList.remove('hidden');
+    showOverlay('點擊播放');
   }
 }
 
@@ -501,17 +510,22 @@ function goTo(idx) {
   }, 240);
 }
 
-// Click video inner to play/pause
+// 影片結束 → 暫停並顯示「再播一次」
+vid.addEventListener('ended', () => {
+  showOverlay('再播一次');
+});
+
+// 點擊影片區域
 document.getElementById('videoInner').addEventListener('click', () => {
   if (vid.paused) {
-    vid.play().then(() => playOverlay.classList.add('hidden'));
+    vid.play().then(() => hideOverlay()).catch(() => {});
   } else {
     vid.pause();
-    playOverlay.classList.remove('hidden');
+    showOverlay('點擊播放');
   }
 });
 
-// Keyboard nav
+// Keyboard
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight') goTo(Math.min(cur+1, steps.length-1));
   if (e.key === 'ArrowLeft')  goTo(Math.max(cur-1, 0));
