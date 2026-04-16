@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GUI Agent — 下載 SPECworkstation</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=Inconsolata:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #080909;
+  --panel:     #0f1011;
+  --card:      #141516;
+  --border:    rgba(255,255,255,0.06);
+  --border-hi: rgba(232,196,104,0.35);
+  --gold:      #e8c468;
+  --gold-dim:  rgba(232,196,104,0.12);
+  --gold-glow: rgba(232,196,104,0.06);
+  --text-1:    #edeae3;
+  --text-2:    #7a7872;
+  --text-3:    #3f3e3b;
+  --radius:    8px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+.shell {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+}
+
+/* Top bar */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  height: 52px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.brand { display: flex; align-items: center; gap: 10px; }
+
+.brand-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: blink 2.4s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%,100% { opacity:1; box-shadow: 0 0 8px var(--gold); }
+  50%      { opacity:.25; box-shadow: none; }
+}
+
+.brand-name {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-1);
+}
+
+.brand-sub {
+  font-family: 'Inconsolata', monospace;
+  font-size: 11px;
+  color: var(--text-2);
+  letter-spacing: 0.04em;
+}
+
+.topbar-right {
+  font-family: 'Inconsolata', monospace;
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Main */
+.main {
+  display: grid;
+  grid-template-columns: 256px 1fr;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 1.5rem 0;
+}
+
+.sidebar-label {
+  font-family: 'Inconsolata', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  padding: 0 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 1.25rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-left: 2px solid transparent;
+}
+
+.step-item:hover { background: rgba(255,255,255,0.02); }
+.step-item.active { background: var(--gold-dim); border-left-color: var(--gold); }
+
+.step-track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.step-num {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inconsolata', monospace;
+  font-size: 11px;
+  color: var(--text-2);
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.step-item.active .step-num {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #080909;
+  font-weight: 500;
+}
+
+.step-line {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+}
+
+.step-info { flex: 1; padding-top: 3px; min-width: 0; }
+
+.step-en {
+  font-family: 'Inconsolata', monospace;
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.step-item.active .step-en { color: var(--gold); opacity: .7; }
+
+.step-zh {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  line-height: 1.35;
+}
+
+.step-item.active .step-zh { color: var(--text-1); }
+
+/* Video area */
+.video-area {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  overflow: hidden;
+}
+
+.video-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.75rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.video-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(232,196,104,0.035) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.video-frame {
+  position: relative;
+  width: 100%;
+  max-width: 880px;
+  aspect-ratio: 16/9;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.5), 0 28px 72px rgba(0,0,0,0.65);
+  background: #000;
+}
+
+.video-chrome {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 28px;
+  background: rgba(18,19,20,0.97);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 6px;
+  z-index: 2;
+}
+
+.cdot { width: 9px; height: 9px; border-radius: 50%; }
+.cdot.r { background: #ff5f57; }
+.cdot.y { background: #febc2e; }
+.cdot.g { background: #28c840; }
+
+.chrome-label {
+  font-family: 'Inconsolata', monospace;
+  font-size: 10px;
+  color: var(--text-3);
+  flex: 1;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+.video-inner {
+  position: absolute;
+  top: 28px; left: 0; right: 0; bottom: 0;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  background: #000;
+}
+
+.fade {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+  z-index: 3;
+}
+
+.fade.on { opacity: 1; }
+
+/* Info bar */
+.info-bar {
+  border-top: 1px solid var(--border);
+  padding: 0.9rem 2rem;
+  display: grid;
+  grid-template-columns: auto 1px 1fr auto;
+  gap: 1.25rem;
+  align-items: center;
+  background: var(--panel);
+  flex-shrink: 0;
+}
+
+.info-left { display: flex; flex-direction: column; gap: 2px; }
+
+.info-tag {
+  font-family: 'Inconsolata', monospace;
+  font-size: 10px;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.info-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-1);
+  white-space: nowrap;
+}
+
+.info-sep { background: var(--border); height: 34px; }
+
+.info-desc { font-size: 13px; color: var(--text-2); line-height: 1.55; }
+
+.pdots { display: flex; gap: 7px; align-items: center; }
+
+.pdot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--text-3);
+  transition: all 0.25s;
+  cursor: pointer;
+}
+
+.pdot.on {
+  background: var(--gold);
+  border-color: var(--gold);
+  box-shadow: 0 0 7px var(--gold);
+}
+
+/* key hint */
+.key-hint {
+  position: fixed;
+  bottom: 14px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Inconsolata', monospace;
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+kbd {
+  border: 1px solid var(--text-3);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-family: inherit;
+  font-size: 10px;
+}
+
+.sidebar::-webkit-scrollbar { width: 3px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span class="brand-name">GUI Agent</span>
+      <span class="brand-sub">/ 下載 SPECworkstation</span>
+    </div>
+    <div class="topbar-right">Execution Trace &nbsp;·&nbsp; 5 Steps</div>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      <div class="sidebar-label">執行步驟</div>
+      <div id="stepList"></div>
+    </div>
+
+    <div class="video-area">
+      <div class="video-stage">
+        <div class="video-frame">
+          <div class="video-chrome">
+            <span class="cdot r"></span>
+            <span class="cdot y"></span>
+            <span class="cdot g"></span>
+            <span class="chrome-label" id="chromeLabel">Step 1 — Target Folder</span>
+          </div>
+          <div class="video-inner">
+            <video id="vid" playsinline muted></video>
+            <div class="fade" id="fade"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-bar">
+        <div class="info-left">
+          <span class="info-tag" id="infoTag">STEP 01 / 05</span>
+          <span class="info-name" id="infoName">Target Folder</span>
+        </div>
+        <div class="info-sep"></div>
+        <p class="info-desc" id="infoDesc">確認安裝資料夾路徑，確保目標位置正確無誤</p>
+        <div class="pdots" id="pdots"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="key-hint">
+  <kbd>←</kbd><kbd>→</kbd> 切換步驟
+</div>
+
+<script>
+const steps = [
+  { en:'Target Folder',   zh:'確認安裝資料夾', src:'0416_01.mp4', desc:'確認安裝資料夾路徑，確保目標位置正確無誤' },
+  { en:'Launch Setup',    zh:'進入安裝畫面',   src:'0416_02.mp4', desc:'啟動 SPECworkstation 安裝程式，進入設定流程畫面' },
+  { en:'Select Resources',zh:'選擇資源包位置', src:'0416_03.mp4', desc:'指定資源包所在路徑，確認下載來源設定正確' },
+  { en:'Confirm Install', zh:'確認安裝',       src:'0416_04.mp4', desc:'核對所有安裝設定後，按下確認鍵開始執行安裝' },
+  { en:'Setup Complete',  zh:'安裝完成畫面',   src:'0416_05.mp4', desc:'安裝流程順利結束，畫面顯示 Setup Complete 確認訊息' }
+];
+
+let cur = 0;
+let busy = false;
+
+const vid    = document.getElementById('vid');
+const fade   = document.getElementById('fade');
+const chrome = document.getElementById('chromeLabel');
+const iTag   = document.getElementById('infoTag');
+const iName  = document.getElementById('infoName');
+const iDesc  = document.getElementById('infoDesc');
+const list   = document.getElementById('stepList');
+const pdots  = document.getElementById('pdots');
+
+let btns = [], dots = [];
+
+// Build sidebar + dots
+steps.forEach((s, i) => {
+  const el = document.createElement('div');
+  el.className = 'step-item' + (i === 0 ? ' active' : '');
+  el.innerHTML = `
+    <div class="step-track">
+      <div class="step-num">${String(i+1).padStart(2,'0')}</div>
+      ${i < steps.length-1 ? '<div class="step-line"></div>' : ''}
+    </div>
+    <div class="step-info">
+      <div class="step-en">${s.en}</div>
+      <div class="step-zh">${s.zh}</div>
+    </div>`;
+  el.addEventListener('click', () => goTo(i));
+  list.appendChild(el);
+  btns.push(el);
+
+  const d = document.createElement('div');
+  d.className = 'pdot' + (i === 0 ? ' on' : '');
+  d.addEventListener('click', () => goTo(i));
+  pdots.appendChild(d);
+  dots.push(d);
+});
+
+function setUI(idx) {
+  const s = steps[idx];
+  btns.forEach((b,i) => b.classList.toggle('active', i===idx));
+  dots.forEach((d,i) => d.classList.toggle('on', i===idx));
+  chrome.textContent = `Step ${idx+1} — ${s.en}`;
+  iTag.textContent   = `STEP ${String(idx+1).padStart(2,'0')} / ${String(steps.length).padStart(2,'0')}`;
+  iName.textContent  = s.en;
+  iDesc.textContent  = s.desc;
+}
+
+function goTo(idx) {
+  if (idx === cur || busy) return;
+  busy = true;
+  fade.classList.add('on');
+
+  setTimeout(() => {
+    cur = idx;
+    setUI(idx);
+    vid.src = steps[idx].src;
+    vid.load();
+
+    const tryPlay = () => {
+      fade.classList.remove('on');
+      vid.play().catch(()=>{});
+      busy = false;
+    };
+
+    vid.oncanplay = () => { vid.oncanplay = null; tryPlay(); };
+    setTimeout(() => { if(busy){ tryPlay(); } }, 1000);
+  }, 240);
+}
+
+// Loop
+vid.addEventListener('ended', () => { vid.currentTime = 0; vid.play().catch(()=>{}); });
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') goTo(Math.min(cur+1, steps.length-1));
+  if (e.key === 'ArrowLeft')  goTo(Math.max(cur-1, 0));
+});
+
+// Init
+setUI(0);
+vid.src = steps[0].src;
+vid.load();
+vid.oncanplay = () => { vid.oncanplay = null; vid.play().catch(()=>{}); };
+</script>
+</body>
+</html>
